@@ -7,15 +7,15 @@ namespace dotnetCoreWithJWTAuth.Models.DTO
     {
         [Required]
         public string UserName { get; set; }
-        
+
         [Required]
         [EmailAddress]
-        public string Email { get;  set; }
+        public string Email { get; set; }
 
         [Required]
-        public string Password { get;  set; }
+        public string Password { get; set; }
 
         [Required]
-        public int Role { get; set; }
+        public string RoleId { get; internal set; }
     }
 }

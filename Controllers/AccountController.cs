@@ -67,9 +67,12 @@ namespace dotnetCoreWithJWTAuth.Controllers
             {
                 Email = newUser.Email,
                 UserName = newUser.UserName,
-                
+
+
 
             };
+
+
             var result = await _userManager.CreateAsync(identityUser, newUser.Password);
             if (!result.Succeeded)
             {
@@ -83,6 +86,8 @@ namespace dotnetCoreWithJWTAuth.Controllers
             }
             else
             {
+                _context.UserRoles.Add(new IdentityUserRole<string>() { UserId = identityUser.Id, RoleId = newUser.RoleId });
+
                 return new ObjectResult(GenerateJwtToken(identityUser));
             }
         }
@@ -96,7 +101,7 @@ namespace dotnetCoreWithJWTAuth.Controllers
             var roles = from ur in _context.UserRoles
                         join r in _context.Roles on ur.RoleId equals r.Id
                         where ur.UserId == user.Id
-                        select new {ur.UserId,ur.RoleId,r.Name};
+                        select new { ur.UserId, ur.RoleId, r.Name };
 
             var claims = new List<Claim>{
                 new Claim(ClaimTypes.Name, user.UserName),
@@ -108,21 +113,23 @@ namespace dotnetCoreWithJWTAuth.Controllers
 
             foreach (var role in roles)
             {
-                claims.Add(new Claim(ClaimTypes.Role,role.Name));
+                claims.Add(new Claim(ClaimTypes.Role, role.Name));
             }
 
-            var tokenDescriptor = new SecurityTokenDescriptor{
+            var tokenDescriptor = new SecurityTokenDescriptor
+            {
                 Subject = new ClaimsIdentity(claims),
-                SigningCredentials= new SigningCredentials(new SymmetricSecurityKey(key),SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
             var token = jwtTokenHandler.CreateToken(tokenDescriptor);
 
-            var jwtToken =jwtTokenHandler.WriteToken(token);
+            var jwtToken = jwtTokenHandler.WriteToken(token);
 
 
-            return new {
-                UserName=user.UserName,
+            return new
+            {
+                UserName = user.UserName,
                 Access_Token = jwtToken
             };
         }
